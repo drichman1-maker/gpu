@@ -32,20 +32,35 @@ interface BBSearchResponse {
     products: BBProduct[]
 }
 
-// Map GPU slug to Best Buy search terms
+// Map GPU slug to Best Buy search terms (22 GPUs)
 const BB_SEARCH_MAP: Record<string, string> = {
+    // NVIDIA RTX 5000 (Blackwell)
     'rtx-5090': 'RTX 5090',
     'rtx-5080': 'RTX 5080',
     'rtx-5070-ti': 'RTX 5070 Ti',
     'rtx-5070': 'RTX 5070',
     'rtx-5060-ti': 'RTX 5060 Ti',
+    'rtx-5060': 'RTX 5060',
+    // NVIDIA RTX 4000 (Ada Lovelace)
     'rtx-4090': 'RTX 4090',
     'rtx-4080-super': 'RTX 4080 Super',
+    'rtx-4080': 'RTX 4080',
+    'rtx-4070-ti-super': 'RTX 4070 Ti Super',
+    'rtx-4070-ti': 'RTX 4070 Ti',
     'rtx-4070-super': 'RTX 4070 Super',
+    'rtx-4070': 'RTX 4070',
+    'rtx-4060-ti': 'RTX 4060 Ti',
+    'rtx-4060': 'RTX 4060',
+    // AMD RX 9000 (RDNA 4)
     'rx-9070-xt': 'RX 9070 XT',
+    'rx-9070': 'RX 9070',
     'rx-9060-xt': 'RX 9060 XT',
+    // AMD RX 7000 (RDNA 3)
     'rx-7900-xtx': 'RX 7900 XTX',
+    'rx-7900-xt': 'RX 7900 XT',
+    'rx-7800-xt': 'RX 7800 XT',
     'rx-7700-xt': 'RX 7700 XT',
+    'rx-7600': 'RX 7600',
 }
 
 export class BestBuyConnector extends RetailerConnector {
