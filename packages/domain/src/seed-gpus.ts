@@ -1,0 +1,163 @@
+import type { GPU } from './types'
+
+// ─── Initial GPU Catalog (12 GPUs, Week-1 seed) ───────────────────────────────
+
+export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
+    // ── NVIDIA Blackwell (RTX 5000) ──────────────────────────────────────────
+    {
+        slug: 'rtx-5090',
+        model: 'RTX 5090',
+        brand: 'nvidia',
+        architecture: 'Blackwell',
+        generation: 'RTX 5000',
+        vram_gb: 32,
+        tdp_watts: 575,
+        msrp_usd: 1999,
+        release_date: '2025-01-30',
+        active: true,
+    },
+    {
+        slug: 'rtx-5080',
+        model: 'RTX 5080',
+        brand: 'nvidia',
+        architecture: 'Blackwell',
+        generation: 'RTX 5000',
+        vram_gb: 16,
+        tdp_watts: 360,
+        msrp_usd: 999,
+        release_date: '2025-01-30',
+        active: true,
+    },
+    {
+        slug: 'rtx-5070-ti',
+        model: 'RTX 5070 Ti',
+        brand: 'nvidia',
+        architecture: 'Blackwell',
+        generation: 'RTX 5000',
+        vram_gb: 16,
+        tdp_watts: 300,
+        msrp_usd: 749,
+        release_date: '2025-02-20',
+        active: true,
+    },
+    {
+        slug: 'rtx-5070',
+        model: 'RTX 5070',
+        brand: 'nvidia',
+        architecture: 'Blackwell',
+        generation: 'RTX 5000',
+        vram_gb: 12,
+        tdp_watts: 250,
+        msrp_usd: 549,
+        release_date: '2025-03-05',
+        active: true,
+    },
+    {
+        slug: 'rtx-5060-ti',
+        model: 'RTX 5060 Ti',
+        brand: 'nvidia',
+        architecture: 'Blackwell',
+        generation: 'RTX 5000',
+        vram_gb: 16,
+        tdp_watts: 180,
+        msrp_usd: 429,
+        release_date: '2025-03-20',
+        active: true,
+    },
+    // ── NVIDIA Ada Lovelace (RTX 4000) ───────────────────────────────────────
+    {
+        slug: 'rtx-4090',
+        model: 'RTX 4090',
+        brand: 'nvidia',
+        architecture: 'Ada Lovelace',
+        generation: 'RTX 4000',
+        vram_gb: 24,
+        tdp_watts: 450,
+        msrp_usd: 1599,
+        release_date: '2022-10-12',
+        active: true,
+    },
+    {
+        slug: 'rtx-4080-super',
+        model: 'RTX 4080 Super',
+        brand: 'nvidia',
+        architecture: 'Ada Lovelace',
+        generation: 'RTX 4000',
+        vram_gb: 16,
+        tdp_watts: 320,
+        msrp_usd: 999,
+        release_date: '2024-01-31',
+        active: true,
+    },
+    {
+        slug: 'rtx-4070-super',
+        model: 'RTX 4070 Super',
+        brand: 'nvidia',
+        architecture: 'Ada Lovelace',
+        generation: 'RTX 4000',
+        vram_gb: 12,
+        tdp_watts: 220,
+        msrp_usd: 599,
+        release_date: '2024-01-17',
+        active: true,
+    },
+    // ── AMD RDNA 4 (RX 9000) ─────────────────────────────────────────────────
+    {
+        slug: 'rx-9070-xt',
+        model: 'RX 9070 XT',
+        brand: 'amd',
+        architecture: 'RDNA 4',
+        generation: 'RX 9000',
+        vram_gb: 16,
+        tdp_watts: 304,
+        msrp_usd: 599,
+        release_date: '2025-03-19',
+        active: true,
+    },
+    {
+        slug: 'rx-9060-xt',
+        model: 'RX 9060 XT',
+        brand: 'amd',
+        architecture: 'RDNA 4',
+        generation: 'RX 9000',
+        vram_gb: 16,
+        tdp_watts: 150,
+        msrp_usd: 299,
+        release_date: '2025-06-05',
+        active: true,
+    },
+    // ── AMD RDNA 3 (RX 7000) ─────────────────────────────────────────────────
+    {
+        slug: 'rx-7900-xtx',
+        model: 'RX 7900 XTX',
+        brand: 'amd',
+        architecture: 'RDNA 3',
+        generation: 'RX 7000',
+        vram_gb: 24,
+        tdp_watts: 355,
+        msrp_usd: 999,
+        release_date: '2022-12-13',
+        active: true,
+    },
+    {
+        slug: 'rx-7700-xt',
+        model: 'RX 7700 XT',
+        brand: 'amd',
+        architecture: 'RDNA 3',
+        generation: 'RX 7000',
+        vram_gb: 12,
+        tdp_watts: 245,
+        msrp_usd: 449,
+        release_date: '2023-09-07',
+        active: true,
+    },
+]
+
+// Price tier buckets for /best-gpu-under-X pages
+export const PRICE_TIERS = [200, 300, 400, 500, 600, 700, 800, 1000, 1500, 2000] as const
+export type PriceTier = typeof PRICE_TIERS[number]
+
+// MSRP reference for deal scoring fallback
+export const GPU_MSRP_MAP: Record<string, number> = Object.fromEntries(
+    GPU_SEED.map(g => [g.slug, g.msrp_usd])
+)

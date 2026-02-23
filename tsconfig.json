@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "lib": [
+            "ES2022"
+        ],
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "dist",
+        "baseUrl": ".",
+        "paths": {
+            "@gpuwatch/domain": [
+                "./packages/domain/src/index.ts"
+            ],
+            "@gpuwatch/infra": [
+                "./packages/infra/src/index.ts"
+            ],
+            "@gpuwatch/charts": [
+                "./packages/charts/src/index.ts"
+            ],
+            "@gpuwatch/notif": [
+                "./packages/notif/src/index.ts"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "dist",
+        ".next"
+    ]
+}

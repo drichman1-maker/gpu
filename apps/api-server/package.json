@@ -1,0 +1,33 @@
+{
+    "name": "api-server",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "worker:ingest": "tsx src/workers/ingest-worker.ts",
+        "worker:stock": "tsx src/workers/stock-monitor.ts"
+    },
+    "dependencies": {
+        "@gpuwatch/domain": "workspace:*",
+        "@gpuwatch/infra": "workspace:*",
+        "@gpuwatch/notif": "workspace:*",
+        "bullmq": "^5.4.0",
+        "ioredis": "^5.4.1",
+        "postgres": "^3.4.3",
+        "bottleneck": "^2.19.5",
+        "node-cron": "^3.0.3",
+        "express": "^4.18.2",
+        "@sentry/node": "^8.0.0",
+        "dotenv": "^16.4.5",
+        "zod": "^3.23.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.4.5",
+        "@types/node": "^20.0.0",
+        "@types/express": "^4.17.21",
+        "@types/node-cron": "^3.0.11",
+        "tsx": "^4.7.0"
+    }
+}
