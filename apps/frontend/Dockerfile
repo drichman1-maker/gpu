@@ -17,7 +17,7 @@ COPY packages/notif/package.json ./packages/notif/
 COPY apps/frontend/package.json ./apps/frontend/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Build stage
 FROM base AS builder

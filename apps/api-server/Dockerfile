@@ -2,7 +2,7 @@ FROM node:20-alpine AS base
 
 # Install dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # Install pnpm
@@ -17,7 +17,7 @@ COPY packages/notif/package.json ./packages/notif/
 COPY apps/api-server/package.json ./apps/api-server/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Build stage
 FROM base AS builder
@@ -25,14 +25,17 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps ./apps
+COPY package.json pnpm-workspace.yaml tsconfig.json ./
+COPY scripts ./scripts
 
-# Build all packages
+# Build all packages in dependency order
 RUN pnpm --filter @gpuwatch/domain build
 RUN pnpm --filter @gpuwatch/infra build
 RUN pnpm --filter @gpuwatch/charts build
 RUN pnpm --filter @gpuwatch/notif build
-RUN pnpm --filter @gpuwatch/api-server build
+RUN pnpm --filter api-server build
 
 # Production stage
 FROM base AS runner
@@ -48,7 +51,12 @@ RUN adduser --system --uid 1001 apiuser
 COPY --from=builder --chown=apiuser:nodejs /app/apps/api-server/dist ./dist
 COPY --from=builder --chown=apiuser:nodejs /app/apps/api-server/package.json ./
 COPY --from=builder --chown=apiuser:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=apiuser:nodejs /app/packages ./packages
+COPY --from=builder --chown=apiuser:nodejs /app/packages/domain/dist ./packages/domain/dist
+COPY --from=builder --chown=apiuser:nodejs /app/packages/domain/package.json ./packages/domain/
+COPY --from=builder --chown=apiuser:nodejs /app/packages/infra/dist ./packages/infra/dist
+COPY --from=builder --chown=apiuser:nodejs /app/packages/infra/package.json ./packages/infra/
+COPY --from=builder --chown=apiuser:nodejs /app/packages/notif/dist ./packages/notif/dist
+COPY --from=builder --chown=apiuser:nodejs /app/packages/notif/package.json ./packages/notif/
 
 USER apiuser
 
