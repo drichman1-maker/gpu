@@ -7,10 +7,6 @@ export const metadata: Metadata = {
     description: 'Track GPU prices across Best Buy, Amazon, Newegg and more. Get deal alerts, price history charts, and stock notifications for RTX 5090, RTX 5080, RX 9070 XT, and all major GPUs.',
     keywords: ['GPU price tracker', 'RTX 5090 price', 'GPU deals', 'graphics card price comparison', 'GPU stock alerts'],
     authors: [{ name: 'GPUWatch' }],
-    icons: {
-        icon: '/favicon.ico',
-        apple: '/apple-touch-icon.png',
-    },
     openGraph: {
         type: 'website',
         siteName: 'GPUWatch',
