@@ -112,4 +112,73 @@ function retailerLabel(retailer: string): string {
     return labels[retailer] ?? retailer
 }
 
+// ─── Welcome Email ──────────────────────────────────────────────────────────
+
+export interface WelcomeEmailPayload {
+    toEmail: string
+}
+
+export async function sendWelcomeEmail(payload: WelcomeEmailPayload): Promise<void> {
+    const resend = getResend()
+    const { toEmail } = payload
+
+    const subject = 'Welcome to GPU Drip! 🎮'
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${subject}</title>
+</head>
+<body style="background:#0d0d0d;color:#e5e5e5;font-family:Inter,system-ui,sans-serif;margin:0;padding:32px 16px;">
+  <div style="max-width:520px;margin:0 auto;">
+    <div style="background:#111;border:1px solid #222;border-radius:12px;padding:32px;">
+      
+      <div style="text-align:center;margin-bottom:24px;">
+        <span style="font-size:48px;">🎮</span>
+      </div>
+      
+      <h1 style="margin:0 0 16px;font-size:28px;font-weight:700;color:#fff;text-align:center;">
+        Welcome to GPU Drip!
+      </h1>
+      
+      <p style="margin:0 0 24px;color:#888;font-size:15px;line-height:1.6;text-align:center;">
+        You're now subscribed to GPU price alerts. We'll monitor prices across 8 retailers and notify you when your tracked GPUs drop in price.
+      </p>
+      
+      <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin-bottom:24px;">
+        <h3 style="margin:0 0 12px;font-size:16px;font-weight:600;color:#fff;">What's Next?</h3>
+        <ul style="margin:0;padding-left:20px;color:#888;line-height:1.8;">
+          <li>Browse <a href="${APP_URL}/gpu" style="color:#8b5cf6;text-decoration:none;">GPUs</a> and set price alerts</li>
+          <li>Set target prices or get notified on any drop</li>
+          <li>We check prices every 4 hours, 24/7</li>
+        </ul>
+      </div>
+      
+      <a href="${APP_URL}/gpu"
+         style="display:block;background:#2563eb;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:8px;font-size:15px;font-weight:700;">
+        Browse GPUs →
+      </a>
+    </div>
+    
+    <p style="text-align:center;color:#555;font-size:11px;margin-top:20px;">
+      GPU Drip · <a href="${APP_URL}/privacy" style="color:#666;">Privacy</a> · 
+      <a href="${APP_URL}/api/unsubscribe?email=${encodeURIComponent(toEmail)}" style="color:#666;">Unsubscribe</a><br/>
+      You're receiving this because you subscribed to GPU Drip price alerts.
+    </p>
+  </div>
+</body>
+</html>`
+
+    await resend.emails.send({
+        from: FROM,
+        to: [toEmail],
+        subject,
+        html,
+        text: `Welcome to GPU Drip!\n\nYou're now subscribed to GPU price alerts. We'll monitor prices across 8 retailers and notify you when your tracked GPUs drop in price.\n\nBrowse GPUs: ${APP_URL}/gpu\n\n--\nGPU Drip`,
+    })
+}
+
 export { getResend }
