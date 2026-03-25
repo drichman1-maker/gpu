@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { useState, useEffect } from 'react'
 import { Bell, Check, AlertTriangle, Loader2, Mail } from 'lucide-react'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://gpudrip-api.fly.dev'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://gpudrip-backend.fly.dev'
 const MAX_GPUS = 5
 
 interface GPU {
