@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
 import { GPU_SEED } from '@gpuwatch/domain'
 import type { GPU, RetailerOffer, DealScore, PriceChartData } from '@gpuwatch/domain'
-import { RetailerTable, StockBadge, DealBadge, VolatilityBar } from '@gpuwatch/charts'
+import { computePPD } from '@gpuwatch/domain'
+import { RetailerTable, StockBadge, DealBadge, VolatilityBar, PPDBar, BuildCompatibility } from '@gpuwatch/charts'
 
 // Dynamic import for chart — Lightweight Charts requires browser APIs
 const PriceChart = dynamic(
@@ -264,6 +265,19 @@ export default async function GPUPage({ params }: { params: { model: string } })
                                 ))}
                             </div>
                         </div>
+
+                        {/* PPD Value Score */}
+                        {bestOffer && gpu.benchmark_score && (() => {
+                            const ppd = computePPD(gpu.benchmark_score, bestOffer.price_usd, [])
+                            return ppd ? <div className="card"><PPDBar ppd={ppd} /></div> : null
+                        })()}
+
+                        {/* Build Compatibility */}
+                        <BuildCompatibility
+                            gpuModel={gpu.model}
+                            tdpWatts={gpu.tdp_watts}
+                            recommendedPsu={gpu.recommended_psu}
+                        />
 
                         {/* Volatility */}
                         {topDealScore && (

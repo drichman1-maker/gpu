@@ -1,6 +1,6 @@
 import type { GPU } from './types'
 
-// ─── Initial GPU Catalog (22 GPUs, comprehensive launch catalog) ─────────────
+// ─── Initial GPU Catalog (38 GPUs, comprehensive launch catalog + legacy models) ─────────────
 
 export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
     // ── NVIDIA Blackwell (RTX 5000) ──────────────────────────────────────────
@@ -15,6 +15,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 1999,
         release_date: '2025-01-30',
         active: true,
+        benchmark_score: 35200,
+        recommended_psu: 1000,
     },
     {
         slug: 'rtx-5080',
@@ -27,6 +29,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 999,
         release_date: '2025-01-30',
         active: true,
+        benchmark_score: 26800,
+        recommended_psu: 850,
     },
     {
         slug: 'rtx-5070-ti',
@@ -39,6 +43,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 749,
         release_date: '2025-02-20',
         active: true,
+        benchmark_score: 22400,
+        recommended_psu: 750,
     },
     {
         slug: 'rtx-5070',
@@ -51,6 +57,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 549,
         release_date: '2025-03-05',
         active: true,
+        benchmark_score: 18900,
+        recommended_psu: 650,
     },
     {
         slug: 'rtx-5060-ti',
@@ -63,6 +71,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 429,
         release_date: '2025-03-20',
         active: true,
+        benchmark_score: 15600,
+        recommended_psu: 600,
     },
     {
         slug: 'rtx-5060',
@@ -75,6 +85,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 299,
         release_date: '2025-04-15',
         active: true,
+        benchmark_score: 12800,
+        recommended_psu: 550,
     },
     // ── NVIDIA Ada Lovelace (RTX 4000) ───────────────────────────────────────
     {
@@ -88,6 +100,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 1599,
         release_date: '2022-10-12',
         active: true,
+        benchmark_score: 32100,
+        recommended_psu: 850,
     },
     {
         slug: 'rtx-4080-super',
@@ -100,6 +114,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 999,
         release_date: '2024-01-31',
         active: true,
+        benchmark_score: 24900,
+        recommended_psu: 750,
     },
     {
         slug: 'rtx-4080',
@@ -112,6 +128,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 1199,
         release_date: '2022-11-16',
         active: true,
+        benchmark_score: 23700,
+        recommended_psu: 750,
     },
     {
         slug: 'rtx-4070-ti-super',
@@ -124,6 +142,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 799,
         release_date: '2024-01-24',
         active: true,
+        benchmark_score: 21700,
+        recommended_psu: 700,
     },
     {
         slug: 'rtx-4070-ti',
@@ -136,6 +156,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 799,
         release_date: '2023-01-05',
         active: true,
+        benchmark_score: 20400,
+        recommended_psu: 700,
     },
     {
         slug: 'rtx-4070-super',
@@ -148,6 +170,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 599,
         release_date: '2024-01-17',
         active: true,
+        benchmark_score: 18900,
+        recommended_psu: 650,
     },
     {
         slug: 'rtx-4070',
@@ -160,6 +184,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 599,
         release_date: '2023-04-13',
         active: true,
+        benchmark_score: 17500,
+        recommended_psu: 650,
     },
     {
         slug: 'rtx-4060-ti',
@@ -172,6 +198,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 399,
         release_date: '2023-05-24',
         active: true,
+        benchmark_score: 14200,
+        recommended_psu: 550,
     },
     {
         slug: 'rtx-4060',
@@ -184,6 +212,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 299,
         release_date: '2023-06-29',
         active: true,
+        benchmark_score: 11300,
+        recommended_psu: 500,
     },
     // ── AMD RDNA 4 (RX 9000) ─────────────────────────────────────────────────
     {
@@ -197,6 +227,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 599,
         release_date: '2025-03-19',
         active: true,
+        benchmark_score: 24100,
+        recommended_psu: 750,
     },
     {
         slug: 'rx-9070',
@@ -209,6 +241,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 549,
         release_date: '2025-03-19',
         active: true,
+        benchmark_score: 20400,
+        recommended_psu: 650,
     },
     {
         slug: 'rx-9060-xt',
@@ -221,6 +255,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 299,
         release_date: '2025-06-05',
         active: true,
+        benchmark_score: 14600,
+        recommended_psu: 550,
     },
     // ── AMD RDNA 3 (RX 7000) ─────────────────────────────────────────────────
     {
@@ -234,6 +270,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 999,
         release_date: '2022-12-13',
         active: true,
+        benchmark_score: 23500,
+        recommended_psu: 850,
     },
     {
         slug: 'rx-7900-xt',
@@ -246,6 +284,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 899,
         release_date: '2022-12-13',
         active: true,
+        benchmark_score: 20900,
+        recommended_psu: 750,
     },
     {
         slug: 'rx-7800-xt',
@@ -258,6 +298,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 499,
         release_date: '2023-09-06',
         active: true,
+        benchmark_score: 16400,
+        recommended_psu: 650,
     },
     {
         slug: 'rx-7700-xt',
@@ -270,6 +312,8 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 449,
         release_date: '2023-09-07',
         active: true,
+        benchmark_score: 14200,
+        recommended_psu: 600,
     },
     {
         slug: 'rx-7600',
@@ -282,6 +326,235 @@ export const GPU_SEED: Omit<GPU, 'id' | 'created_at' | 'updated_at'>[] = [
         msrp_usd: 269,
         release_date: '2023-05-25',
         active: true,
+        benchmark_score: 10800,
+        recommended_psu: 500,
+    },
+    // ── NVIDIA Ampere (RTX 3000) ─────────────────────────────────────────────────
+    {
+        slug: 'rtx-3090',
+        model: 'RTX 3090',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 24,
+        tdp_watts: 350,
+        msrp_usd: 1499,
+        release_date: '2020-09-24',
+        active: true,
+        benchmark_score: 24000,
+        recommended_psu: 850,
+    },
+    {
+        slug: 'rtx-3080-ti',
+        model: 'RTX 3080 Ti',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 12,
+        tdp_watts: 350,
+        msrp_usd: 1199,
+        release_date: '2021-06-03',
+        active: true,
+        benchmark_score: 21500,
+        recommended_psu: 850,
+    },
+    {
+        slug: 'rtx-3080',
+        model: 'RTX 3080',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 10,
+        tdp_watts: 320,
+        msrp_usd: 699,
+        release_date: '2020-09-17',
+        active: true,
+        benchmark_score: 19500,
+        recommended_psu: 750,
+    },
+    {
+        slug: 'rtx-3070-ti',
+        model: 'RTX 3070 Ti',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 8,
+        tdp_watts: 290,
+        msrp_usd: 599,
+        release_date: '2021-06-10',
+        active: true,
+        benchmark_score: 17000,
+        recommended_psu: 700,
+    },
+    {
+        slug: 'rtx-3070',
+        model: 'RTX 3070',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 8,
+        tdp_watts: 220,
+        msrp_usd: 499,
+        release_date: '2020-10-29',
+        active: true,
+        benchmark_score: 15500,
+        recommended_psu: 650,
+    },
+    {
+        slug: 'rtx-3060-ti',
+        model: 'RTX 3060 Ti',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 8,
+        tdp_watts: 200,
+        msrp_usd: 399,
+        release_date: '2020-12-02',
+        active: true,
+        benchmark_score: 13500,
+        recommended_psu: 600,
+    },
+    {
+        slug: 'rtx-3060',
+        model: 'RTX 3060',
+        brand: 'nvidia',
+        architecture: 'Ampere',
+        generation: 'RTX 3000',
+        vram_gb: 12,
+        tdp_watts: 170,
+        msrp_usd: 329,
+        release_date: '2021-02-25',
+        active: true,
+        benchmark_score: 10500,
+        recommended_psu: 550,
+    },
+    // ── AMD RDNA 2 (RX 6000) ─────────────────────────────────────────────────────
+    {
+        slug: 'rx-6950-xt',
+        model: 'RX 6950 XT',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 16,
+        tdp_watts: 335,
+        msrp_usd: 1099,
+        release_date: '2022-05-10',
+        active: true,
+        benchmark_score: 19500,
+        recommended_psu: 750,
+    },
+    {
+        slug: 'rx-6900-xt',
+        model: 'RX 6900 XT',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 16,
+        tdp_watts: 300,
+        msrp_usd: 999,
+        release_date: '2020-12-08',
+        active: true,
+        benchmark_score: 18500,
+        recommended_psu: 750,
+    },
+    {
+        slug: 'rx-6800-xt',
+        model: 'RX 6800 XT',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 16,
+        tdp_watts: 300,
+        msrp_usd: 649,
+        release_date: '2020-11-18',
+        active: true,
+        benchmark_score: 17500,
+        recommended_psu: 750,
+    },
+    {
+        slug: 'rx-6800',
+        model: 'RX 6800',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 16,
+        tdp_watts: 250,
+        msrp_usd: 579,
+        release_date: '2020-11-18',
+        active: true,
+        benchmark_score: 16000,
+        recommended_psu: 650,
+    },
+    {
+        slug: 'rx-6700-xt',
+        model: 'RX 6700 XT',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 12,
+        tdp_watts: 230,
+        msrp_usd: 479,
+        release_date: '2021-03-18',
+        active: true,
+        benchmark_score: 13000,
+        recommended_psu: 650,
+    },
+    {
+        slug: 'rx-6600-xt',
+        model: 'RX 6600 XT',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 8,
+        tdp_watts: 160,
+        msrp_usd: 379,
+        release_date: '2021-08-11',
+        active: true,
+        benchmark_score: 11500,
+        recommended_psu: 550,
+    },
+    {
+        slug: 'rx-6600',
+        model: 'RX 6600',
+        brand: 'amd',
+        architecture: 'RDNA 2',
+        generation: 'RX 6000',
+        vram_gb: 8,
+        tdp_watts: 132,
+        msrp_usd: 329,
+        release_date: '2021-10-13',
+        active: true,
+        benchmark_score: 10000,
+        recommended_psu: 500,
+    },
+    // ── Intel Arc (Alchemist) ─────────────────────────────────────────────────────
+    {
+        slug: 'arc-a770',
+        model: 'Arc A770',
+        brand: 'intel',
+        architecture: 'Alchemist',
+        generation: 'Arc',
+        vram_gb: 16,
+        tdp_watts: 225,
+        msrp_usd: 329,
+        release_date: '2022-10-12',
+        active: true,
+        benchmark_score: 14000,
+        recommended_psu: 650,
+    },
+    {
+        slug: 'arc-a750',
+        model: 'Arc A750',
+        brand: 'intel',
+        architecture: 'Alchemist',
+        generation: 'Arc',
+        vram_gb: 8,
+        tdp_watts: 225,
+        msrp_usd: 279,
+        release_date: '2022-10-12',
+        active: true,
+        benchmark_score: 13000,
+        recommended_psu: 650,
     },
 ]
 
@@ -292,4 +565,14 @@ export type PriceTier = typeof PRICE_TIERS[number]
 // MSRP reference for deal scoring fallback
 export const GPU_MSRP_MAP: Record<string, number> = Object.fromEntries(
     GPU_SEED.map(g => [g.slug, g.msrp_usd])
+)
+
+// Benchmark scores for PPD (without needing full GPU objects)
+export const GPU_BENCHMARK_MAP: Record<string, number> = Object.fromEntries(
+    GPU_SEED.map(g => [g.slug, g.benchmark_score!])
+)
+
+// Recommended PSU for BuildCompatibility
+export const GPU_PSU_MAP: Record<string, number> = Object.fromEntries(
+    GPU_SEED.map(g => [g.slug, g.recommended_psu!])
 )

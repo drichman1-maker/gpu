@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
 import type { GPU, RetailerOffer, DealScore } from '@gpuwatch/domain'
+import { batchComputePPD } from '@gpuwatch/domain'
+import { ValueBadge } from '@gpuwatch/charts'
 
 export const metadata: Metadata = {
     title: 'GPU Price Tracker — Live Prices, Deals & Stock Alerts',
@@ -20,7 +22,7 @@ async function getHomepageData(): Promise<{
     deals: DealGPU[]
     allGPUs: (GPU & { lowestPrice: number | null; bestRetailer: string | null })[]
 }> {
-    const cacheKey = 'homepage:v1'
+    const cacheKey = 'homepage:v2'
     const cached = await cacheGet<Awaited<ReturnType<typeof fetchFromDB>>>(cacheKey)
     if (cached) return cached
 
@@ -66,6 +68,7 @@ async function fetchFromDB() {
         id: string; slug: string; model: string; brand: string; architecture: string;
         generation: string; vram_gb: number; msrp_usd: number; active: boolean;
         created_at: string; updated_at: string; tdp_watts: number | null; release_date: string | null;
+        benchmark_score: number | null; recommended_psu: number | null;
         lowest_price: number | null; best_retailer: string | null;
     }>>`
     SELECT
@@ -87,6 +90,7 @@ async function fetchFromDB() {
                 vram_gb: row.vram_gb, tdp_watts: row.tdp_watts, msrp_usd: row.msrp_usd,
                 release_date: row.release_date, active: row.active,
                 created_at: row.created_at, updated_at: row.updated_at,
+                benchmark_score: null, recommended_psu: null,
             },
             bestOffer: {
                 id: row.offer_id, gpu_id: row.gpu_id, retailer: row.retailer as any,
@@ -109,10 +113,19 @@ async function fetchFromDB() {
             vram_gb: row.vram_gb, tdp_watts: row.tdp_watts, msrp_usd: row.msrp_usd,
             release_date: row.release_date, active: row.active,
             created_at: row.created_at, updated_at: row.updated_at,
+            benchmark_score: row.benchmark_score, recommended_psu: row.recommended_psu,
             lowestPrice: row.lowest_price,
             bestRetailer: row.best_retailer,
         })),
     }
+}
+
+// Compute PPD for all GPUs
+function computeAllPPD(gpus: Array<{ benchmark_score: number | null; lowestPrice: number | null; slug: string }>) {
+    return batchComputePPD(gpus.map(g => ({
+        benchmark_score: g.benchmark_score,
+        lowestPrice: g.lowestPrice,
+    })))
 }
 
 const RETAILER_LABELS: Record<string, string> = {
@@ -121,6 +134,7 @@ const RETAILER_LABELS: Record<string, string> = {
 
 export default async function HomePage() {
     const { deals, allGPUs } = await getHomepageData()
+    const ppdMap = computeAllPPD(allGPUs)
 
     return (
         <div>
@@ -242,6 +256,7 @@ export default async function HomePage() {
                                         <th>MSRP</th>
                                         <th>Lowest Price</th>
                                         <th>Best At</th>
+                                        <th>Value</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -272,6 +287,9 @@ export default async function HomePage() {
                                             </td>
                                             <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                                                 {gpu.bestRetailer ? RETAILER_LABELS[gpu.bestRetailer] ?? gpu.bestRetailer : '—'}
+                                            </td>
+                                            <td>
+                                                <ValueBadge ppd={ppdMap.get(gpu.slug) ?? null} />
                                             </td>
                                             <td>
                                                 <Link href={`/gpu/${gpu.slug}`} className="btn btn--ghost" style={{ fontSize: 12 }}>
