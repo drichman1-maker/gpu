@@ -1,4 +1,5 @@
 import type { GPUWithPPD, PPDMetric, ValueRating } from './types'
+import { GPU_SEED } from './seed-gpus'
 
 // ─── Raw PPD Calculation ───────────────────────────────────────────────────────
 
@@ -126,4 +127,61 @@ export function getPSUColor(watts: number): string {
     if (watts < 700) return 'var(--green)'
     if (watts < 850) return 'var(--yellow)'
     return 'var(--red)'
+}
+
+// ─── Pre-computed MSRP-based market median (stable, no DB needed) ──────────────
+
+let _msrpMedian: number | null = null
+
+export function getMSRPMarketMedian(): number {
+    if (_msrpMedian !== null) return _msrpMedian
+    const rawPPDs = GPU_SEED
+        .filter(g => g.benchmark_score && g.msrp_usd > 0)
+        .map(g => g.benchmark_score! / g.msrp_usd)
+        .sort((a, b) => a - b)
+    if (rawPPDs.length === 0) { _msrpMedian = 1; return 1 }
+    const mid = Math.floor(rawPPDs.length / 2)
+    _msrpMedian = rawPPDs.length % 2 !== 0
+        ? rawPPDs[mid]
+        : (rawPPDs[mid - 1] + rawPPDs[mid]) / 2
+    return _msrpMedian
+}
+
+// ─── Compute PPD using MSRP-based market median (single GPU, no DB) ───────────
+
+export function computePPDFromMarket(
+    benchmarkScore: number | null,
+    price: number
+): PPDMetric | null {
+    if (!benchmarkScore || benchmarkScore <= 0 || price <= 0) return null
+
+    const rawPPD = calcRawPPD(benchmarkScore, price)
+    if (rawPPD <= 0) return null
+
+    const median = getMSRPMarketMedian()
+    const normalizedScore = Math.min(100, Math.max(0, (rawPPD / median) * 50))
+
+    // Top 20% threshold from MSRP-based distribution
+    const allRawPPDs = GPU_SEED
+        .filter(g => g.benchmark_score && g.msrp_usd > 0)
+        .map(g => g.benchmark_score! / g.msrp_usd)
+        .sort((a, b) => a - b)
+    const top20Index = Math.floor(allRawPPDs.length * 0.2)
+    const top20Threshold = allRawPPDs[allRawPPDs.length - 1 - top20Index] ?? Infinity
+    const isTop20 = rawPPD >= top20Threshold
+
+    const getValueRating = (score: number): ValueRating => {
+        if (score >= 80) return 'Elite'
+        if (score >= 65) return 'Great'
+        if (score >= 50) return 'Good'
+        if (score >= 35) return 'Fair'
+        return 'Poor'
+    }
+
+    return {
+        rawPPD,
+        normalizedScore: Math.round(normalizedScore * 10) / 10,
+        valueRating: getValueRating(normalizedScore),
+        isTop20,
+    }
 }

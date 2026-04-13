@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
 import { GPU_SEED } from '@gpuwatch/domain'
 import type { GPU, RetailerOffer, DealScore, PriceChartData } from '@gpuwatch/domain'
-import { computePPD } from '@gpuwatch/domain'
+import { computePPDFromMarket } from '@gpuwatch/domain'
 import { RetailerTable, StockBadge, DealBadge, VolatilityBar, PPDBar, BuildCompatibility } from '@gpuwatch/charts'
 
 // Dynamic import for chart — Lightweight Charts requires browser APIs
@@ -268,7 +268,7 @@ export default async function GPUPage({ params }: { params: { model: string } })
 
                         {/* PPD Value Score */}
                         {bestOffer && gpu.benchmark_score && (() => {
-                            const ppd = computePPD(gpu.benchmark_score, bestOffer.price_usd, [])
+                            const ppd = computePPDFromMarket(gpu.benchmark_score, bestOffer.price_usd)
                             return ppd ? <div className="card"><PPDBar ppd={ppd} /></div> : null
                         })()}
 

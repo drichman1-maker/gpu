@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { GPU_SEED, computePPD, comparePPD } from '@gpuwatch/domain'
+import { GPU_SEED, computePPDFromMarket, comparePPD } from '@gpuwatch/domain'
 import { StockBadge, ValueRatingBadge, PPDBar, BuildCompatibility, ComparisonCell } from '@gpuwatch/charts'
 
 export async function generateStaticParams() {
@@ -34,8 +34,8 @@ export default async function ComparePage({ params }: { params: { model: string;
     if (!gpuA || !gpuB) return notFound()
 
     // Use MSRP as fallback price for PPD (live prices would need DB access)
-    const ppdA = computePPD(gpuA.benchmark_score, gpuA.msrp_usd, [])
-    const ppdB = computePPD(gpuB.benchmark_score, gpuB.msrp_usd, [])
+    const ppdA = computePPDFromMarket(gpuA.benchmark_score, gpuA.msrp_usd)
+    const ppdB = computePPDFromMarket(gpuB.benchmark_score, gpuB.msrp_usd)
     const comparisonText = comparePPD(gpuA.model, ppdA, gpuB.model, ppdB)
 
     return (
