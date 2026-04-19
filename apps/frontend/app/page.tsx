@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
 import type { GPU, RetailerOffer, DealScore } from '@gpuwatch/domain'
+import { fetchAllGPUs, fetchDeals, fetchRefurbGPUs } from '../lib/api'
 
 export const metadata: Metadata = {
     title: 'GPU Price Tracker — Live Prices, Deals & Stock Alerts',
@@ -19,108 +19,47 @@ type DealGPU = {
 async function getHomepageData(): Promise<{
     deals: DealGPU[]
     allGPUs: (GPU & { lowestPrice: number | null; bestRetailer: string | null })[]
+    topRefurbs: { name: string; slug: string; price: number; msrp: number; savings: number; retailer: string }[]
 }> {
-    const cacheKey = 'homepage:v1'
-    const cached = await cacheGet<Awaited<ReturnType<typeof fetchFromDB>>>(cacheKey)
-    if (cached) return cached
+    const [dealData, allData, refurbData] = await Promise.all([fetchDeals(8), fetchAllGPUs(), fetchRefurbGPUs()])
 
-    const data = await fetchFromDB()
-    await cacheSet(cacheKey, data, CACHE_TTL.DEAL_SCORES)
-    return data
-}
+    const deals: DealGPU[] = dealData
+        .filter(g => g.bestOffer !== null)
+        .map(g => ({
+            gpu: g.gpu,
+            bestOffer: g.bestOffer!,
+            dealScore: g.dealScore,
+        }))
 
-async function fetchFromDB() {
-    const sql = getDB()
+    const allGPUs = allData.map(g => ({
+        ...g.gpu,
+        lowestPrice: g.lowestPrice,
+        bestRetailer: g.bestRetailer,
+    }))
 
-    // Active deals with best price
-    const deals = await sql<Array<{
-        gpu_id: string; slug: string; model: string; brand: string; architecture: string;
-        generation: string; vram_gb: number; msrp_usd: number; active: boolean;
-        created_at: string; updated_at: string; tdp_watts: number | null; release_date: string | null;
-        retailer: string; price_usd: number; stock_status: string; affiliate_url: string;
-        regular_price_usd: number | null; direct_url: string; last_checked_at: string;
-        offer_id: string; pct_below_avg: number; volatility_score: number; deal_reason: string | null;
-    }>>`
-    SELECT
-      g.*,
-      ro.id AS offer_id,
-      ro.retailer,
-      ro.price_usd,
-      ro.stock_status,
-      ro.affiliate_url,
-      ro.regular_price_usd,
-      ro.direct_url,
-      ro.last_checked_at,
-      ds.pct_below_avg,
-      ds.volatility_score,
-      ds.deal_reason
-    FROM deal_scores ds
-    JOIN retailer_offers ro ON ro.gpu_id = ds.gpu_id AND ro.retailer = ds.retailer
-    JOIN gpus g ON g.id = ds.gpu_id
-    WHERE ds.is_deal = TRUE AND g.active = TRUE
-    ORDER BY ds.pct_below_avg DESC
-    LIMIT 8
-  `
+    const topRefurbs = refurbData
+        .filter(g => g.bestOffer?.stock_status === 'in_stock' && g.gpu.msrp_usd > 0)
+        .map(g => ({
+            name: g.gpu.model,
+            slug: g.gpu.slug,
+            price: g.bestOffer!.price_usd,
+            msrp: g.gpu.msrp_usd,
+            savings: Math.round(((g.gpu.msrp_usd - g.bestOffer!.price_usd) / g.gpu.msrp_usd) * 100),
+            retailer: g.bestOffer!.retailer,
+        }))
+        .sort((a, b) => b.savings - a.savings)
+        .slice(0, 4)
 
-    const allGPUs = await sql<Array<{
-        id: string; slug: string; model: string; brand: string; architecture: string;
-        generation: string; vram_gb: number; msrp_usd: number; active: boolean;
-        created_at: string; updated_at: string; tdp_watts: number | null; release_date: string | null;
-        lowest_price: number | null; best_retailer: string | null;
-    }>>`
-    SELECT
-      g.*,
-      MIN(ro.price_usd)                                             AS lowest_price,
-      (ARRAY_AGG(ro.retailer ORDER BY ro.price_usd ASC))[1] AS best_retailer
-    FROM gpus g
-    LEFT JOIN retailer_offers ro ON ro.gpu_id = g.id
-    WHERE g.active = TRUE
-    GROUP BY g.id
-    ORDER BY g.msrp_usd ASC
-  `
-
-    return {
-        deals: deals.map(row => ({
-            gpu: {
-                id: row.gpu_id, slug: row.slug, model: row.model, brand: row.brand as 'nvidia' | 'amd',
-                architecture: row.architecture as any, generation: row.generation as any,
-                vram_gb: row.vram_gb, tdp_watts: row.tdp_watts, msrp_usd: row.msrp_usd,
-                release_date: row.release_date, active: row.active,
-                created_at: row.created_at, updated_at: row.updated_at,
-            },
-            bestOffer: {
-                id: row.offer_id, gpu_id: row.gpu_id, retailer: row.retailer as any,
-                sku: '', price_usd: row.price_usd, regular_price_usd: row.regular_price_usd,
-                sale_price_usd: null, stock_status: row.stock_status as any, stock_quantity: null,
-                affiliate_url: row.affiliate_url, direct_url: row.direct_url,
-                last_checked_at: row.last_checked_at, created_at: row.created_at,
-            },
-            dealScore: {
-                id: '', gpu_id: row.gpu_id, retailer: row.retailer as any,
-                current_price_usd: row.price_usd, rolling_30d_avg_usd: 0, msrp_usd: row.msrp_usd,
-                pct_below_avg: row.pct_below_avg, msrp_delta_pct: 0,
-                volatility_score: row.volatility_score, is_deal: true,
-                deal_reason: row.deal_reason, computed_at: '',
-            },
-        })),
-        allGPUs: allGPUs.map(row => ({
-            id: row.id, slug: row.slug, model: row.model, brand: row.brand as 'nvidia' | 'amd',
-            architecture: row.architecture as any, generation: row.generation as any,
-            vram_gb: row.vram_gb, tdp_watts: row.tdp_watts, msrp_usd: row.msrp_usd,
-            release_date: row.release_date, active: row.active,
-            created_at: row.created_at, updated_at: row.updated_at,
-            lowestPrice: row.lowest_price,
-            bestRetailer: row.best_retailer,
-        })),
-    }
+    return { deals, allGPUs, topRefurbs }
 }
 
 const RETAILER_LABELS: Record<string, string> = {
-    bestbuy: 'Best Buy', amazon: 'Amazon', newegg: 'Newegg', bh_photo: 'B&H Photo',
+    bestbuy: 'Best Buy', amazon: 'Amazon', newegg: 'Newegg', bh: 'B&H Photo',
+    adorama: 'Adorama', ebay: 'eBay', microcenter: 'Micro Center',
 }
 
 export default async function HomePage() {
-    const { deals, allGPUs } = await getHomepageData()
+    const { deals, allGPUs, topRefurbs } = await getHomepageData()
 
     return (
         <div>
@@ -219,6 +158,50 @@ export default async function HomePage() {
                                             <span className={`stock-dot stock-dot--${bestOffer.stock_status}`} />
                                             {bestOffer.stock_status === 'in_stock' ? 'In Stock' : bestOffer.stock_status === 'limited' ? 'Limited' : 'OOS'}
                                         </span>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Refurb Spotlight */}
+            {topRefurbs.length > 0 && (
+                <section style={{ padding: '48px 0', borderTop: '1px solid var(--border)' }}>
+                    <div className="container">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <h2>♻️ Refurb Deals</h2>
+                            <Link href="/gpu/refurb" style={{ color: 'var(--blue)', fontSize: 14 }}>
+                                View all refurbs →
+                            </Link>
+                        </div>
+                        <div className="grid-auto">
+                            {topRefurbs.map(r => (
+                                <Link key={r.slug} href={`/gpu/${r.slug}`} className="card card--hover" style={{ display: 'block' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                                        <div>
+                                            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
+                                                REFURBISHED
+                                            </div>
+                                            <h3 style={{ fontSize: 15, fontWeight: 700 }}>{r.name}</h3>
+                                        </div>
+                                        {r.savings > 0 && (
+                                            <span className="badge badge--green" style={{ fontSize: 10 }}>
+                                                -{r.savings}% vs new
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                                        <span className="price price--lg" style={{ color: 'var(--green)' }}>
+                                            ${r.price.toFixed(2)}
+                                        </span>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'line-through' }}>
+                                            ${r.msrp.toFixed(0)}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                                        via {RETAILER_LABELS[r.retailer] ?? r.retailer}
                                     </div>
                                 </Link>
                             ))}

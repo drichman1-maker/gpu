@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 const LINKS = [
     { href: '/', label: 'Markets' },
     { href: '/gpu', label: 'All GPUs' },
+    { href: '/gpu/refurb', label: '♻️ Refurb' },
     { href: '/gpu-price-drops-today', label: 'Drops Today' },
     { href: '/best-gpu-under-500', label: 'Best Deals' },
 ]
