@@ -3,11 +3,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const LINKS = [
-    { href: '/', label: 'Markets' },
     { href: '/gpu', label: 'All GPUs' },
-    { href: '/gpu/refurb', label: '♻️ Refurb' },
-    { href: '/gpu-price-drops-today', label: 'Drops Today' },
-    { href: '/best-gpu-under-500', label: 'Best Deals' },
+    { href: '/gpu/refurb', label: 'Refurb' },
+    { href: '/gpu-price-drops-today', label: 'Deals' },
+    { href: '/compare', label: 'Compare' },
+    { href: '/retailers', label: 'Retailers' },
+    { href: '/blog', label: 'Blog' },
 ]
 
 export function NavBar() {
@@ -18,7 +19,7 @@ export function NavBar() {
             <div className="container">
                 <div className="nav__inner">
                     <Link href="/" className="nav__brand">
-                        ⚡ GPU<span>Watch</span>
+                        ⚡ GPU<span>Drip</span>
                     </Link>
 
                     <div className="nav__links" style={{ display: 'flex', gap: 2 }}>
@@ -26,7 +27,7 @@ export function NavBar() {
                             <Link
                                 key={href}
                                 href={href}
-                                className={`nav__link ${path === href ? 'nav__link--active' : ''}`}
+                                className={`nav__link ${path.startsWith(href) && href !== '/' ? 'nav__link--active' : path === href ? 'nav__link--active' : ''}`}
                             >
                                 {label}
                             </Link>
@@ -34,7 +35,7 @@ export function NavBar() {
                     </div>
 
                     <Link href="/alerts" className="btn btn--outline" style={{ padding: '7px 14px', fontSize: 13 }}>
-                        🔔 Set Alert
+                        🔔 Price Alert
                     </Link>
                 </div>
             </div>
