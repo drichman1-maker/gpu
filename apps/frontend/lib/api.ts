@@ -51,6 +51,8 @@ function toGPU(p: ApiProduct): GPU {
     slug: p.slug,
     model: p.name,
     brand,
+    benchmark_score: null,
+    recommended_psu: null,
     architecture: arch as GPU['architecture'],
     generation: (brand === 'intel' ? 'Arc Battlemage'
       : brand === 'amd'
