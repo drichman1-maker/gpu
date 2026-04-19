@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
 import type { GPU, RetailerOffer, DealScore } from '@gpuwatch/domain'
 import Link from 'next/link'
+import { fetchDeals } from '../../lib/api'
 
 export const metadata: Metadata = {
     title: 'GPU Price Drops Today — Real-Time Deal Tracker',
@@ -11,55 +11,15 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 async function getTodaysDrops() {
-    const cacheKey = 'price-drops-today:v1'
-    const cached = await cacheGet<{ gpu: GPU; offer: RetailerOffer; deal: DealScore }[]>(cacheKey)
-    if (cached) return cached
+    const deals = await fetchDeals(50)
+    const result = deals
+        .filter(g => g.bestOffer !== null && g.dealScore !== null)
+        .map(g => ({
+            gpu: g.gpu,
+            offer: g.bestOffer!,
+            deal: g.dealScore!,
+        }))
 
-    const sql = getDB()
-
-    const rows = await sql`
-    SELECT
-      g.id, g.slug, g.model, g.brand, g.architecture, g.generation,
-      g.vram_gb, g.tdp_watts, g.msrp_usd, g.release_date, g.active,
-      g.created_at, g.updated_at,
-      ro.id AS offer_id, ro.retailer, ro.price_usd, ro.stock_status,
-      ro.affiliate_url, ro.regular_price_usd, ro.direct_url, ro.last_checked_at,
-      ds.pct_below_avg, ds.msrp_delta_pct, ds.volatility_score,
-      ds.deal_reason, ds.rolling_30d_avg, ds.computed_at
-    FROM deal_scores ds
-    JOIN retailer_offers ro ON ro.gpu_id = ds.gpu_id AND ro.retailer = ds.retailer
-    JOIN gpus g ON g.id = ds.gpu_id AND g.active = TRUE
-    WHERE ds.is_deal = TRUE
-      AND ds.computed_at >= NOW() - INTERVAL '6 hours'
-    ORDER BY ds.pct_below_avg DESC, ro.price_usd ASC
-    LIMIT 50
-  `
-
-    const result = (rows as any[]).map((row: any) => ({
-        gpu: {
-            id: row.id, slug: row.slug, model: row.model, brand: row.brand,
-            architecture: row.architecture, generation: row.generation,
-            vram_gb: row.vram_gb, tdp_watts: row.tdp_watts, msrp_usd: row.msrp_usd,
-            release_date: row.release_date, active: row.active,
-            created_at: row.created_at, updated_at: row.updated_at,
-        } as GPU,
-        offer: {
-            id: row.offer_id, gpu_id: row.id, retailer: row.retailer,
-            sku: '', price_usd: row.price_usd, regular_price_usd: row.regular_price_usd,
-            sale_price_usd: null, stock_status: row.stock_status, stock_quantity: null,
-            affiliate_url: row.affiliate_url, direct_url: row.direct_url,
-            last_checked_at: row.last_checked_at, created_at: row.created_at,
-        } as RetailerOffer,
-        deal: {
-            id: '', gpu_id: row.id, retailer: row.retailer,
-            current_price_usd: row.price_usd, rolling_30d_avg_usd: row.rolling_30d_avg,
-            msrp_usd: row.msrp_usd, pct_below_avg: row.pct_below_avg,
-            msrp_delta_pct: row.msrp_delta_pct, volatility_score: row.volatility_score,
-            is_deal: true, deal_reason: row.deal_reason, computed_at: row.computed_at,
-        } as DealScore,
-    }))
-
-    await cacheSet(cacheKey, result, CACHE_TTL.DEAL_SCORES)
     return result
 }
 

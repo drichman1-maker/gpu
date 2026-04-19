@@ -1,18 +1,18 @@
 import type { Metadata } from 'next'
-import { getDB } from '@gpuwatch/infra'
 import type { GPU } from '@gpuwatch/domain'
 import { AdminPanel } from '@/components/admin-panel'
+import { fetchAllGPUs } from '../../lib/api'
 
 export const metadata: Metadata = {
-    title: 'Admin — GPUWatch',
+    title: 'Admin — GPUDrip',
     robots: { index: false, follow: false },
 }
 
 export const dynamic = 'force-dynamic'
 
 async function getGPUs(): Promise<GPU[]> {
-    const sql = getDB()
-    return sql`SELECT * FROM gpus ORDER BY msrp_usd ASC`
+    const all = await fetchAllGPUs()
+    return all.map(g => g.gpu)
 }
 
 export default async function AdminPage() {

@@ -1,39 +1,20 @@
 import type { Metadata } from 'next'
-import { GPU_SEED } from '@gpuwatch/domain'
-import { revalidatePath } from 'next/cache'
+import { fetchAllGPUs } from '../../lib/api'
 
 export const metadata: Metadata = {
-    title: 'Price Alerts — GPUWatch',
+    title: 'Price Alerts — GPUDrip',
     description: 'Get email alerts when your target GPU hits your price. Set your target and we\'ll notify you instantly.',
 }
 
-async function createWatch(formData: FormData) {
+async function createWatch(_formData: FormData) {
     'use server'
-    const { getDB } = await import('@gpuwatch/infra')
-    const sql = getDB()
-
-    const email = formData.get('email') as string
-    const gpuId = formData.get('gpu_id') as string
-    const targetPrice = formData.get('target_price') ? Number(formData.get('target_price')) : null
-    const notifyInStock = formData.get('notify_in_stock') === 'on'
-
-    if (!email || !gpuId) return
-
-    await sql`
-    INSERT INTO gpu_watches (email, gpu_id, target_price_usd, notify_in_stock)
-    VALUES (${email}, ${gpuId}, ${targetPrice}, ${notifyInStock})
-    ON CONFLICT (email, gpu_id) DO UPDATE SET
-      target_price_usd = EXCLUDED.target_price_usd,
-      notify_in_stock = EXCLUDED.notify_in_stock
-  `
-    revalidatePath('/alerts')
+    // Alert storage not yet implemented in the unified API
 }
 
-// Load GPU list from DB for the select
+// Load GPU list from unified API
 async function getGPUList() {
-    const { getDB } = await import('@gpuwatch/infra')
-    const sql = getDB()
-    return sql`SELECT id, model, slug, msrp_usd FROM gpus WHERE active = TRUE ORDER BY msrp_usd ASC`
+    const all = await fetchAllGPUs()
+    return all.map(g => ({ id: g.gpu.id, model: g.gpu.model, slug: g.gpu.slug, msrp_usd: g.gpu.msrp_usd }))
 }
 
 export default async function AlertsPage({

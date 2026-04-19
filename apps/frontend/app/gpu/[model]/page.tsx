@@ -2,10 +2,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
-import { GPU_SEED } from '@gpuwatch/domain'
 import type { GPU, RetailerOffer, DealScore, PriceChartData } from '@gpuwatch/domain'
 import { RetailerTable, StockBadge, DealBadge, VolatilityBar } from '@gpuwatch/charts'
+import { fetchAllGPUs, fetchGPU } from '../../../lib/api'
 
 // Dynamic import for chart — Lightweight Charts requires browser APIs
 const PriceChart = dynamic(
@@ -15,20 +14,22 @@ const PriceChart = dynamic(
 
 // ─── Static params (build-time ISR) ──────────────────────────────────────────
 export async function generateStaticParams() {
-    return GPU_SEED.map(g => ({ model: g.slug }))
+    const all = await fetchAllGPUs()
+    return all.map(g => ({ model: g.gpu.slug }))
 }
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 export async function generateMetadata(
     { params }: { params: { model: string } }
 ): Promise<Metadata> {
-    const gpu = GPU_SEED.find(g => g.slug === params.model)
-    if (!gpu) return {}
+    const data = await fetchGPU(params.model)
+    if (!data) return {}
+    const gpu = data.gpu
     return {
         title: `${gpu.model} Price Tracker — Live Prices, Deals & History`,
         description: `Track ${gpu.model} prices across Best Buy, Amazon, Newegg. See 30-day price history, deal alerts, and stock availability. Currently starting at MSRP $${gpu.msrp_usd}.`,
         openGraph: {
-            title: `${gpu.model} GPU Prices — GPUWatch`,
+            title: `${gpu.model} GPU Prices — GPUDrip`,
             description: `Best ${gpu.model} prices right now. Price history, deals, stock alerts.`,
         },
     }
@@ -38,70 +39,23 @@ export const revalidate = 60
 
 // ─── Data fetching ─────────────────────────────────────────────────────────────
 async function getGPUData(slug: string) {
-    const cacheKey = `gpu:${slug}:v1`
-    const cached = await cacheGet<{
-        gpu: GPU
-        offers: RetailerOffer[]
-        dealScores: DealScore[]
-        chartData: PriceChartData[]
-    }>(cacheKey)
-    if (cached) return cached
+    const data = await fetchGPU(slug)
+    if (!data) return null
 
-    const sql = getDB()
+    const { gpu, offers, dealScore } = data
+    const dealScores: DealScore[] = dealScore ? [dealScore] : []
+    const chartData: PriceChartData[] = []  // no history data yet
 
-    const [gpu] = await sql<GPU[]>`
-    SELECT * FROM gpus WHERE slug = ${slug} AND active = TRUE LIMIT 1
-  `
-    if (!gpu) return null
-
-    const offers = await sql<RetailerOffer[]>`
-    SELECT * FROM retailer_offers WHERE gpu_id = ${gpu.id} ORDER BY price_usd ASC
-  `
-
-    const dealScores = await sql<DealScore[]>`
-    SELECT * FROM deal_scores WHERE gpu_id = ${gpu.id}
-  `
-
-    // 30-day chart data per retailer
-    const history = await sql<{ retailer: string; bucket: string; avg_price: number }[]>`
-    SELECT retailer, bucket::text, avg_price
-    FROM price_30d_avg
-    WHERE gpu_id = ${gpu.id}
-      AND bucket >= NOW() - INTERVAL '30 days'
-    ORDER BY retailer, bucket ASC
-  `
-
-    // Group by retailer
-    const retailerMap = new Map<string, { time: string; value: number }[]>()
-    for (const row of history) {
-        if (!retailerMap.has(row.retailer)) retailerMap.set(row.retailer, [])
-        retailerMap.get(row.retailer)!.push({
-            time: row.bucket.slice(0, 10),
-            value: Number(row.avg_price),
-        })
-    }
-
-    const chartData: PriceChartData[] = Array.from(retailerMap.entries()).map(([retailer, points]) => ({
-        gpu_id: gpu.id,
-        retailer: retailer as any,
-        range: '30d',
-        points,
-        min: Math.min(...points.map(p => p.value)),
-        max: Math.max(...points.map(p => p.value)),
-        avg: points.reduce((s, p) => s + p.value, 0) / points.length,
-    }))
-
-    const result = { gpu, offers, dealScores, chartData }
-    await cacheSet(cacheKey, result, CACHE_TTL.CHART_DATA)
-    return result
+    return { gpu, offers, dealScores, chartData }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function GPUPage({ params }: { params: { model: string } }) {
-    const data = await getGPUData(params.model)
+    const [data, allGPUData] = await Promise.all([getGPUData(params.model), fetchAllGPUs()])
     if (!data) return notFound()
 
     const { gpu, offers, dealScores, chartData } = data
+    const allGPUs = allGPUData.map(g => g.gpu)
     const bestOffer = offers[0] ?? null
     const bestDeal = dealScores.find(d => d.is_deal) ?? null
     const topDealScore = dealScores.sort((a, b) => b.pct_below_avg - a.pct_below_avg)[0]
@@ -299,7 +253,7 @@ export default async function GPUPage({ params }: { params: { model: string } })
                         <div className="card">
                             <h4 style={{ marginBottom: 12 }}>Compare</h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {GPU_SEED.filter(g => g.slug !== gpu.slug && g.brand === gpu.brand).slice(0, 4).map(other => (
+                                {allGPUs.filter(g => g.slug !== gpu.slug && g.brand === gpu.brand).slice(0, 4).map(other => (
                                     <Link
                                         key={other.slug}
                                         href={`/gpu/${gpu.slug}/vs/${other.slug}`}

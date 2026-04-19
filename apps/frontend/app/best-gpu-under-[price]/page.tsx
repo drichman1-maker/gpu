@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getDB, cacheGet, cacheSet, CACHE_TTL } from '@gpuwatch/infra'
 import type { GPU, RetailerOffer, DealScore } from '@gpuwatch/domain'
 import { PRICE_TIERS } from '@gpuwatch/domain'
 import Link from 'next/link'
+import { fetchAllGPUs } from '../../lib/api'
 
 export const revalidate = 300 // 5 min for SEO pages
 
@@ -26,73 +26,20 @@ export async function generateMetadata(
 }
 
 async function getGPUsUnder(maxPrice: number) {
-    const cacheKey = `seo:best-under-${maxPrice}`
-    const cached = await cacheGet<{ gpu: GPU; offer: RetailerOffer; deal: DealScore | null }[]>(cacheKey)
-    if (cached) return cached
-
-    const sql = getDB()
-    const rows = await sql<Array<{
-        id: string; slug: string; model: string; brand: string; architecture: string;
-        generation: string; vram_gb: number; msrp_usd: number; active: boolean;
-        created_at: string; updated_at: string; tdp_watts: number | null; release_date: string | null;
-        offer_id: string; retailer: string; price_usd: number; stock_status: string;
-        affiliate_url: string; regular_price_usd: number | null; direct_url: string;
-        last_checked_at: string; is_deal: boolean | null; pct_below_avg: number | null;
-        deal_reason: string | null; volatility_score: number | null;
-    }>>`
-    SELECT
-      g.*,
-      ro.id          AS offer_id,
-      ro.retailer,
-      ro.price_usd,
-      ro.stock_status,
-      ro.affiliate_url,
-      ro.regular_price_usd,
-      ro.direct_url,
-      ro.last_checked_at,
-      ds.is_deal,
-      ds.pct_below_avg,
-      ds.deal_reason,
-      ds.volatility_score
-    FROM (
-      SELECT gpu_id, MIN(price_usd) AS min_p
-      FROM retailer_offers
-      WHERE price_usd <= ${maxPrice}
-      GROUP BY gpu_id
-    ) best
-    JOIN retailer_offers ro ON ro.gpu_id = best.gpu_id AND ro.price_usd = best.min_p
-    JOIN gpus g ON g.id = ro.gpu_id AND g.active = TRUE
-    LEFT JOIN deal_scores ds ON ds.gpu_id = ro.gpu_id AND ds.retailer = ro.retailer
-    ORDER BY ds.pct_below_avg DESC NULLS LAST, ro.price_usd ASC
-    LIMIT 20
-  `
-
-    const result = rows.map(row => ({
-        gpu: {
-            id: row.id, slug: row.slug, model: row.model, brand: row.brand as 'nvidia' | 'amd',
-            architecture: row.architecture as any, generation: row.generation as any,
-            vram_gb: row.vram_gb, tdp_watts: row.tdp_watts, msrp_usd: row.msrp_usd,
-            release_date: row.release_date, active: row.active,
-            created_at: row.created_at, updated_at: row.updated_at,
-        },
-        offer: {
-            id: row.offer_id, gpu_id: row.id, retailer: row.retailer as any,
-            sku: '', price_usd: row.price_usd, regular_price_usd: row.regular_price_usd,
-            sale_price_usd: null, stock_status: row.stock_status as any, stock_quantity: null,
-            affiliate_url: row.affiliate_url, direct_url: row.direct_url,
-            last_checked_at: row.last_checked_at, created_at: row.created_at,
-        },
-        deal: row.is_deal ? {
-            id: '', gpu_id: row.id, retailer: row.retailer as any,
-            current_price_usd: row.price_usd, rolling_30d_avg_usd: 0, msrp_usd: row.msrp_usd,
-            pct_below_avg: row.pct_below_avg ?? 0, msrp_delta_pct: 0,
-            volatility_score: row.volatility_score ?? 0, is_deal: true,
-            deal_reason: row.deal_reason, computed_at: '',
-        } : null,
-    }))
-
-    await cacheSet(cacheKey, result, CACHE_TTL.GPU_LIST)
-    return result
+    const all = await fetchAllGPUs()
+    return all
+        .filter(g => g.lowestPrice !== null && g.lowestPrice <= maxPrice)
+        .sort((a, b) => {
+            const dealDiff = (b.dealScore?.pct_below_avg ?? 0) - (a.dealScore?.pct_below_avg ?? 0)
+            if (dealDiff !== 0) return dealDiff
+            return (a.lowestPrice ?? 0) - (b.lowestPrice ?? 0)
+        })
+        .slice(0, 20)
+        .map(g => ({
+            gpu: g.gpu,
+            offer: g.bestOffer!,
+            deal: g.dealScore,
+        }))
 }
 
 const RETAILER_LABELS: Record<string, string> = {

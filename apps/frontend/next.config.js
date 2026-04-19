@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
     // ISR revalidation defaults
     experimental: {
         // Enable server actions for form submissions

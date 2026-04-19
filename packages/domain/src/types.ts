@@ -2,9 +2,9 @@ import { z } from 'zod'
 
 // ─── GPU Architecture ─────────────────────────────────────────────────────────
 
-export type GPUArchitecture = 'Ada Lovelace' | 'Blackwell' | 'RDNA 3' | 'RDNA 4'
+export type GPUArchitecture = 'Ada Lovelace' | 'Blackwell' | 'RDNA 3' | 'RDNA 4' | 'Ampere' | 'Xe2'
 
-export type GPUGeneration = 'RTX 4000' | 'RTX 5000' | 'RX 7000' | 'RX 9000'
+export type GPUGeneration = 'RTX 4000' | 'RTX 5000' | 'RX 7000' | 'RX 9000' | 'Arc Battlemage' | 'RTX 3000'
 
 export type StockStatus = 'in_stock' | 'out_of_stock' | 'limited' | 'preorder' | 'unknown'
 
@@ -21,7 +21,7 @@ export interface GPU {
     id: string                      // UUID
     slug: string                    // e.g. "rtx-5090"
     model: string                   // e.g. "RTX 5090"
-    brand: 'nvidia' | 'amd'
+    brand: 'nvidia' | 'amd' | 'intel'
     architecture: GPUArchitecture
     generation: GPUGeneration
     vram_gb: number
@@ -158,9 +158,9 @@ export const GPUSchema = z.object({
     id: z.string().uuid(),
     slug: z.string().regex(/^[a-z0-9-]+$/),
     model: z.string().min(1),
-    brand: z.enum(['nvidia', 'amd']),
-    architecture: z.enum(['Ada Lovelace', 'Blackwell', 'RDNA 3', 'RDNA 4']),
-    generation: z.enum(['RTX 4000', 'RTX 5000', 'RX 7000', 'RX 9000']),
+    brand: z.enum(['nvidia', 'amd', 'intel']),
+    architecture: z.enum(['Ada Lovelace', 'Blackwell', 'RDNA 3', 'RDNA 4', 'Ampere', 'Xe2']),
+    generation: z.enum(['RTX 4000', 'RTX 5000', 'RX 7000', 'RX 9000', 'Arc Battlemage', 'RTX 3000']),
     vram_gb: z.number().positive(),
     tdp_watts: z.number().positive().nullable(),
     msrp_usd: z.number().positive(),
