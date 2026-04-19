@@ -2,9 +2,9 @@ import { z } from 'zod'
 
 // ─── GPU Architecture ─────────────────────────────────────────────────────────
 
-export type GPUArchitecture = 'Ada Lovelace' | 'Blackwell' | 'RDNA 3' | 'RDNA 4' | 'Ampere' | 'Xe2'
+export type GPUArchitecture = 'Ada Lovelace' | 'Blackwell' | 'RDNA 3' | 'RDNA 4' | 'Ampere' | 'RDNA 2' | 'Xe2' | 'Alchemist'
 
-export type GPUGeneration = 'RTX 4000' | 'RTX 5000' | 'RX 7000' | 'RX 9000' | 'Arc Battlemage' | 'RTX 3000'
+export type GPUGeneration = 'RTX 4000' | 'RTX 5000' | 'RX 7000' | 'RX 9000' | 'RTX 3000' | 'RX 6000' | 'Arc Battlemage' | 'Arc'
 
 export type StockStatus = 'in_stock' | 'out_of_stock' | 'limited' | 'preorder' | 'unknown'
 
@@ -29,8 +29,27 @@ export interface GPU {
     msrp_usd: number
     release_date: string | null     // ISO date string
     active: boolean                 // soft-delete / deactivate
+    benchmark_score: number | null  // Synthetic composite score (rasterization + ray tracing)
+    recommended_psu: number | null  // Recommended PSU in Watts (includes transient spike buffer)
     created_at: string
     updated_at: string
+}
+
+// ─── PPD (Performance-per-Dollar) Types ─────────────────────────────────────────
+
+export type ValueRating = 'Elite' | 'Great' | 'Good' | 'Fair' | 'Poor'
+
+export interface PPDMetric {
+    rawPPD: number                  // benchmark_score / price
+    normalizedScore: number         // 0-100 scale relative to market median
+    valueRating: ValueRating
+    isTop20: boolean                // Top 20% PPD across all GPUs
+}
+
+export interface GPUWithPPD extends GPU {
+    ppd?: PPDMetric
+    lowestPrice?: number | null
+    bestRetailer?: string | null
 }
 
 export interface RetailerOffer {
@@ -166,6 +185,8 @@ export const GPUSchema = z.object({
     msrp_usd: z.number().positive(),
     release_date: z.string().nullable(),
     active: z.boolean(),
+    benchmark_score: z.number().positive().nullable(),
+    recommended_psu: z.number().int().positive().nullable(),
     created_at: z.string(),
     updated_at: z.string(),
 })

@@ -2,6 +2,7 @@ import express from 'express'
 import 'dotenv/config'
 import * as Sentry from '@sentry/node'
 import { createSchedulers, scheduleRecurringJobs } from './queue'
+import { router } from './routes'
 
 // Boot all workers by importing them
 import './workers/ingest-worker'
@@ -16,6 +17,8 @@ Sentry.init({
 
 const app = express()
 const PORT = process.env.PORT || 8080
+
+app.use(express.json())
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
@@ -32,9 +35,12 @@ app.get('/', (_req, res) => {
         name: 'GPUWatch API',
         version: '1.0.0',
         status: 'running',
-        endpoints: ['/health']
+        endpoints: ['/health', '/api/gpus', '/api/retailers', '/api/alerts', '/api/subscribe', '/api/unsubscribe']
     })
 })
+
+// Mount API routes
+app.use('/api', router)
 
 async function main() {
     console.log('🚀 GPUWatch API Server starting...')

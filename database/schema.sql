@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS gpus (
   msrp_usd       NUMERIC(10, 2) NOT NULL,
   release_date   DATE,
   active         BOOLEAN NOT NULL DEFAULT TRUE,
+  benchmark_score INT,
+  recommended_psu INT,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
