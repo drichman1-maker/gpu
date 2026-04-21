@@ -10,9 +10,9 @@ export default function Navbar() {
                 </Link>
 
                 <div className="hidden md:flex gap-8 text-sm font-medium text-gray-300">
-                    <Link href="/category/robot-vacuums" className="hover:text-white transition">Robots</Link>
-                    <Link href="/compare/all" className="hover:text-white transition">Compare</Link>
                     <Link href="/rankings" className="hover:text-white transition">Rankings</Link>
+                    <Link href="/compare/all" className="hover:text-white transition">Compare</Link>
+                    <Link href="/blog" className="hover:text-white transition">Blog</Link>
                 </div>
 
                 <div className="flex gap-4">
